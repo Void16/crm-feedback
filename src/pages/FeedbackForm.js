@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, Send, CheckCircle, User, Mail, Phone, ArrowLeft } from 'lucide-react';
+import { Send, CheckCircle, User, ArrowLeft } from 'lucide-react';
 import { API_BASE_URL } from '../utils/constants';
 
 const FeedbackForm = ({ userInfo, onLogout }) => {
