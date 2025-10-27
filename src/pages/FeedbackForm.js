@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { Send, CheckCircle, User, ArrowLeft } from 'lucide-react';
+import { Send, CheckCircle, User, ArrowLeft, Shield } from 'lucide-react'; // Added Shield import
 import { API_BASE_URL } from '../utils/constants';
 
-const FeedbackForm = ({ userInfo, onLogout }) => {
+const FeedbackForm = ({ userInfo, onLogout, meterInfo }) => { // Added meterInfo prop
   const [formData, setFormData] = useState({
     name: userInfo?.name || '',
     email: userInfo?.email || '',
     phone: '',
     feedback_type: 'other',
     subject: '',
-    message: ''
+    message: '',
+    meter_number: meterInfo?.meter_number || '' // Now meterInfo is defined
   });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -46,7 +47,8 @@ const FeedbackForm = ({ userInfo, onLogout }) => {
             phone: '',
             feedback_type: 'other',
             subject: '',
-            message: ''
+            message: '',
+            meter_number: meterInfo?.meter_number || '' // Added meter_number here too
           });
           setSubmitted(false);
         }, 5000);
@@ -60,6 +62,27 @@ const FeedbackForm = ({ userInfo, onLogout }) => {
     }
 
     setLoading(false);
+  };
+
+  // Conditionally render meter info section only if meterInfo exists
+  const renderMeterInfo = () => {
+    if (!meterInfo) return null;
+
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+        <div className="flex items-center mb-2">
+          <Shield size={16} className="text-green-600 mr-2" />
+          <span className="font-semibold text-green-800">Verified Meter</span>
+        </div>
+        <div className="text-sm text-gray-700">
+          <p><strong>Meter Number:</strong> {meterInfo.meter_number}</p>
+          <p><strong>Customer:</strong> {meterInfo.customer_name}</p>
+          {meterInfo.customer_address && (
+            <p><strong>Address:</strong> {meterInfo.customer_address}</p>
+          )}
+        </div>
+      </div>
+    );
   };
 
   if (submitted) {
@@ -192,6 +215,9 @@ const FeedbackForm = ({ userInfo, onLogout }) => {
                 />
               </div>
             </div>
+
+            {/* Meter Info Section - conditionally rendered */}
+            {renderMeterInfo()}
 
             {/* Feedback Type */}
             <div>

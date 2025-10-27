@@ -2,16 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
 import Login from './pages/Login';
+import MeterVerification from './pages/MeterVerification';
 import FeedbackForm from './pages/FeedbackForm';
 import { GOOGLE_CLIENT_ID } from './utils/constants';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [meterInfo, setMeterInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is already logged in
     const savedUser = localStorage.getItem('feedback_user');
+    const savedMeter = localStorage.getItem('meter_info');
+    
     if (savedUser) {
       try {
         setUser(JSON.parse(savedUser));
@@ -19,19 +23,27 @@ function App() {
         localStorage.removeItem('feedback_user');
       }
     }
+    
+    if (savedMeter) {
+      try {
+        setMeterInfo(JSON.parse(savedMeter));
+      } catch (e) {
+        localStorage.removeItem('meter_info');
+      }
+    }
+    
     setLoading(false);
   }, []);
 
   const handleLoginSuccess = (credentialResponse) => {
     try {
-      // Decode the JWT token from Google
       const decoded = jwtDecode(credentialResponse.credential);
       
       const userInfo = {
         email: decoded.email,
         name: decoded.name,
         picture: decoded.picture,
-        sub: decoded.sub, // Google user ID
+        sub: decoded.sub,
       };
 
       setUser(userInfo);
@@ -49,9 +61,17 @@ function App() {
     alert('Login failed. Please try again.');
   };
 
+  const handleMeterVerified = (meterData) => {
+    setMeterInfo(meterData);
+    localStorage.setItem('meter_info', JSON.stringify(meterData));
+    console.log('✅ Meter verified:', meterData);
+  };
+
   const handleLogout = () => {
     setUser(null);
+    setMeterInfo(null);
     localStorage.removeItem('feedback_user');
+    localStorage.removeItem('meter_info');
   };
 
   if (loading) {
@@ -67,12 +87,21 @@ function App() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      {user ? (
-        <FeedbackForm userInfo={user} onLogout={handleLogout} />
-      ) : (
+      {!user ? (
         <Login 
           onLoginSuccess={handleLoginSuccess} 
           onLoginError={handleLoginError} 
+        />
+      ) : !meterInfo ? (
+        <MeterVerification 
+          userInfo={user}
+          onVerified={handleMeterVerified}
+        />
+      ) : (
+        <FeedbackForm 
+          userInfo={user}
+          meterInfo={meterInfo}
+          onLogout={handleLogout}
         />
       )}
     </GoogleOAuthProvider>
